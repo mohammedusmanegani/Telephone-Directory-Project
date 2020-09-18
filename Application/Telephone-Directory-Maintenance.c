@@ -17,14 +17,21 @@
 //Function Prototyping
 void printLine();
 long int findSize(char file_name[]);
+char *tail(FILE *, int);
 void userAuthentation();
 void mainMenu();
 void departmentMaintenanceMenu();
 void employeeMaintenanceMenu();
+void telephoneMaintenanceMenu();
 void addAnEmployee();
 void addDepartment();
+void addTelephoneNumber();
 void printDepartmentDetails();
 void printEmployeeDetails();
+int returnDepartmentCodeOnDepartmentName(char[]);
+int checkForExistenceOfEmpInTelePhoneData(int);
+void telephoneEnquiryMenu();
+void enquironTelephoneNumber();
 
 /*
  * Structure Name: Employee
@@ -33,7 +40,7 @@ void printEmployeeDetails();
 */
 typedef struct employee
 {
-    char employeeName[25], departmentName[15];
+    char employeeName[25], departmentName[15], employeeLocation[5];
     int employeeId, departmentCode;
 } employee;
 
@@ -47,6 +54,17 @@ typedef struct department
     int departmentCode;
     char departmentName[15];
 } department;
+
+/*
+ * Structure Name: Telephone
+ * Structure Members: int, char[]
+ * Author: S Varun
+*/
+typedef struct telephone
+{
+    int employeeId, departmentCode, telephoneNumber;
+    char location[15], departmentName[15], employeeName[25];
+} telephone;
 
 /*
  * This Function Prints Line
@@ -63,7 +81,8 @@ void printLine()
 
 /*
  * Returns the Last Line Of the File
- * Mohammed Usman E Gani
+ * Author: Mohammed Usman E Gani
+ * Source: Geeksforgeeks.com
 */
 char *tail(FILE *in, int n)
 {
@@ -115,13 +134,6 @@ long int findSize(char file_name[])
 {
     // opening the file in read mode
     FILE *fp = fopen(file_name, "r");
-
-    // // checking if the file exist or not
-    // if (fp == NULL)
-    // {
-    //     printf("File Not Found!\n");
-    //     return -1;
-    // }
 
     fseek(fp, 0L, SEEK_END);
 
@@ -209,7 +221,8 @@ void mainMenu()
             break;
 
         case 3:
-            printf("3");
+            system("CLS");
+            telephoneMaintenanceMenu();
             break;
 
         case 4:
@@ -287,9 +300,9 @@ void printEmployeeDetails()
         printf("\n Employee List Is Empty. Please Add the Employee.\n\n");
         employeeMaintenanceMenu();
     }
-    printf(" ---------------------------------------------------------------------------------------");
-    printf("\n Employee ID \t\t Employee Name \t\t Department \t\t Department Code\n");
-    printf(" ---------------------------------------------------------------------------------------\n");
+    printf(" ---------------------------------------------------------------------------------------------------------------");
+    printf("\n Department \t\t Department Code \t Location \t\t Employee Name \t\t Employee ID\n");
+    printf(" ---------------------------------------------------------------------------------------------------------------\n");
 
     while ((ch = fgetc(f)) != EOF)
     {
@@ -314,7 +327,7 @@ void printEmployeeDetails()
         linesCount--;
     }
 
-    printf(" ---------------------------------------------------------------------------------------\n");
+    printf(" ---------------------------------------------------------------------------------------------------------------\n");
     fclose(f);
     printf("\n Press Enter To Continue... ");
     getch();
@@ -403,6 +416,46 @@ void employeeMaintenanceMenu()
 }
 
 /*
+ * Telephone Directory Maintenance Menu
+ * Author: S. Varun
+*/
+void telephoneMaintenanceMenu()
+{
+    int choice, invalidStatus;
+    do
+    {
+        invalidStatus = 0;
+        printLine();
+        printf(" Telephone Directory Maintenance Menu\n");
+        printLine();
+        printf("\n 1. Add Telephone Number\n 2. Telephone Enquiry Menu\n 3. Goto Main Menu\n\n Enter Your Choice: ");
+        scanf("%d", &choice);
+        switch (choice)
+        {
+        case 1:
+            system("CLS");
+            addTelephoneNumber();
+            break;
+
+        case 2:
+            system("CLS");
+            telephoneEnquiryMenu();
+            break;
+
+        case 3:
+            system("CLS");
+            mainMenu();
+            break;
+
+        default:
+            system("CLS");
+            printf("\n Invalid Choice\n\n");
+            invalidStatus = 1;
+        }
+    } while (invalidStatus == 1);
+}
+
+/*
  * Add An Employee Function
  * Author: Mohammed Usman E Gani
 */
@@ -418,7 +471,7 @@ void addAnEmployee()
     if (res == 0)
     {
         system("CLS");
-        printf("\n----------- Not Department Exists ! -----------\n\n");
+        printf("\n----------- No Department Exists ! -----------\n\n");
         departmentMaintenanceMenu();
     }
     printLine();
@@ -433,8 +486,7 @@ void addAnEmployee()
     }
     else
     {
-        char trav[100], temp_trav[100];
-        int itr;
+        char trav[100];
         strcpy(trav, strrev(tail(fopen("employeeData.txt", "r"), 2)));
         char *previousEmployeeId = strtok(trav, ",");
         strcpy(previousEmployeeId, strrev(previousEmployeeId));
@@ -491,8 +543,10 @@ void addAnEmployee()
         printf("\n Department with code %d Dose not Exists.\n\n", departmentCode);
         printDepartmentDetails();
     }
+    printf("\n Enter The Location: ");
+    scanf("%s", emp.employeeLocation);
     fp_employeeData = fopen("employeeData.txt", "a");
-    fprintf(fp_employeeData, "%s,%d,%s,%d\n", emp.departmentName, emp.departmentCode, emp.employeeName, emp.employeeId);
+    fprintf(fp_employeeData, "%s,%d,%s,%s,%d\n", emp.departmentName, emp.departmentCode, emp.employeeLocation, emp.employeeName, emp.employeeId);
     printf("\n Employee Added Successfully. Press Enter To Continue... ");
     getch();
     system("CLS");
@@ -556,8 +610,7 @@ void addDepartment()
         }
         if (totrec == 0)
         {
-            char trav[100], temp_trav[100];
-            int itr;
+            char trav[100];
             strcpy(trav, strrev(tail(fopen("DepartmentData.txt", "r"), 2)));
             char *departmentCode = strtok(trav, ",");
             strcpy(departmentCode, strrev(departmentCode));
@@ -575,6 +628,242 @@ void addDepartment()
 }
 
 /*
+ * Function to Add a telephone Number
+ * Author: S.Varun
+*/
+void addTelephoneNumber()
+{
+    FILE *fp_employeeData = fopen("employeeData.txt", "r");
+    telephone tel;
+    int tempEmployeeId, linesCount = 0, found = 0, finalDepCode;
+    char empData[100], tempEmpData[100], depName[100], tempEmpId[100], ch;
+    long int res = findSize("employeeData.txt");
+    if (res == 0)
+    {
+        system("CLS");
+        printf("\n----------- No Employees Exists ! -----------\n\n");
+        employeeMaintenanceMenu();
+    }
+    printLine();
+    printf(" Add a Telephone Number \n");
+    printLine();
+
+    printf("\n Enter Employee ID: ");
+    scanf("%d", &tempEmployeeId);
+
+    while ((ch = fgetc(fp_employeeData)) != EOF)
+    {
+        if (ch == '\n')
+            linesCount++;
+    }
+
+    fclose(fp_employeeData);
+
+    fp_employeeData = fopen("employeeData.txt", "r");
+    while (!(feof(fp_employeeData)) && linesCount > 0)
+    {
+        fscanf(fp_employeeData, "%s", tempEmpData);
+        strcpy(tempEmpId, tempEmpData);
+        tel.employeeId = atoi(strrev(strtok(strrev(tempEmpId), ",")));
+        if (tempEmployeeId == tel.employeeId)
+        {
+            strcpy(empData, tempEmpData);
+            strcpy(depName, tempEmpData);
+            strtok(depName, ",");
+            found = 1;
+        }
+        linesCount--;
+    }
+    fclose(fp_employeeData);
+
+    if (found == 0)
+    {
+        system("CLS");
+        printf("\n Employee with ID %d Dose not Exists.\n\n", tempEmployeeId);
+        printEmployeeDetails();
+    }
+
+    finalDepCode = returnDepartmentCodeOnDepartmentName(depName);
+
+    res = findSize("telephoneData.txt");
+
+    if (res == 0)
+    {
+        tel.telephoneNumber = 1000;
+    }
+    else
+    {
+        int employeeExistInTelephoneData = 0;
+        employeeExistInTelephoneData = checkForExistenceOfEmpInTelePhoneData(tempEmployeeId);
+        if (employeeExistInTelephoneData == 1)
+        {
+            system("CLS");
+            printf("\n Telephone Number With Employee ID %d Already Exist.\n\n", tempEmployeeId);
+            addTelephoneNumber();
+        }
+        char trav[100];
+        FILE *fp_telephoneData = fopen("telephoneData.txt", "r");
+        strcpy(trav, strrev(tail(fp_telephoneData, 2)));
+        strrev(strtok(trav, "-"));
+        tel.telephoneNumber = atoi(trav) + 1;
+        fclose(fp_telephoneData);
+    }
+
+    FILE *fp_telephoneData = fopen("telephoneData.txt", "a");
+    fprintf(fp_telephoneData, "%s,%d-%d\n", empData, finalDepCode, tel.telephoneNumber);
+    fclose(fp_telephoneData);
+    printf("\n Telephone Number Added Successfully. Press Enter To Continue... ");
+    getch();
+    system("CLS");
+    telephoneMaintenanceMenu();
+}
+
+/*
+ * This functions takes Department Name And Returns Department Code
+ * Author: Mohammed Usman E Gani
+*/
+int returnDepartmentCodeOnDepartmentName(char depName[])
+{
+    FILE *fp_departmentData = fopen("DepartmentData.txt", "r");
+    int linesCount = 0, finalDepCode;
+    char tempDepData[100], ch, tempDepName[100], tempDepCode[100];
+    while ((ch = fgetc(fp_departmentData)) != EOF)
+    {
+        if (ch == '\n')
+            linesCount++;
+    }
+
+    fclose(fp_departmentData);
+    fp_departmentData = fopen("DepartmentData.txt", "r");
+
+    while (!(feof(fp_departmentData)) && linesCount > 0)
+    {
+        fscanf(fp_departmentData, "%s", tempDepData);
+        strcpy(tempDepName, tempDepData);
+        strtok(tempDepName, ",");
+        strcpy(tempDepCode, tempDepData);
+        if (strcmp(tempDepName, depName) == 0)
+        {
+            finalDepCode = atoi(strrev(strtok(strrev(tempDepCode), ",")));
+        }
+        linesCount--;
+    }
+    fclose(fp_departmentData);
+    return finalDepCode;
+}
+
+/*
+ * This Function 
+*/
+int checkForExistenceOfEmpInTelePhoneData(int tempEmployeeId)
+{
+    char ch, tempTeleData[100];
+    int linesCount = 0, exist = 0;
+    FILE *fp_telephoneData = fopen("telephoneData.txt", "r");
+    while ((ch = fgetc(fp_telephoneData)) != EOF)
+    {
+        if (ch == '\n')
+            linesCount++;
+    }
+    fclose(fp_telephoneData);
+    fp_telephoneData = fopen("telephoneData.txt", "r");
+    while (!(feof(fp_telephoneData)) && linesCount > 0)
+    {
+        fscanf(fp_telephoneData, "%s", tempTeleData);
+
+        char *token = strtok(tempTeleData, ",");
+        int i = 0;
+        while (token != NULL)
+        {
+            i++;
+            if (i == 5)
+            {
+                break;
+            }
+            token = strtok(NULL, ",");
+        }
+        if (atoi(token) == tempEmployeeId)
+        {
+            exist = 1;
+            break;
+        }
+
+        linesCount--;
+    }
+    fclose(fp_telephoneData);
+    if (exist == 1)
+        return 1;
+    else
+        return 0;
+}
+
+/*
+ * Telephone Enquiry Menu
+ * Author: Mohammed Usman E Gani
+*/
+void telephoneEnquiryMenu()
+{
+    int choice, invalidStatus;
+    do
+    {
+        invalidStatus = 0;
+        printLine();
+        printf(" Telephone Enquiry Menu\n");
+        printLine();
+        printf("\n 1. Enquiry on Employee Name\n 2. Enquiry on Telephone Number\n 3. Goto Main Menu\n\n Enter Your Choice: ");
+        scanf("%d", &choice);
+        switch (choice)
+        {
+        case 1:
+            // system("CLS");
+            // enquiryonEmployeeName();
+            break;
+
+        case 2:
+            system("CLS");
+            enquironTelephoneNumber();
+            break;
+
+        case 3:
+            system("CLS");
+            mainMenu();
+            break;
+
+        default:
+            system("CLS");
+            printf("\n Invalid Choice\n\n");
+            invalidStatus = 1;
+        }
+    } while (invalidStatus == 1);
+}
+
+/*
+ * Function For Telephone Number Enquiry
+ * Author: Mohammed Usman E Gani
+*/
+void enquironTelephoneNumber()
+{
+    FILE *fp_telephoneData = fopen("telephoneData.txt", "r");
+
+    long int tempTelephoneNumber;
+    int linesCount = 0;
+    char ch;
+    printLine();
+    printf(" Telephone Number Enquiry\n");
+    printLine();
+    printf("\n Enter Telephone Number: ");
+    scanf("%d", tempTelephoneNumber);
+
+    while ((ch = fgetc(fp_telephoneData)) != EOF)
+    {
+        if (ch == '\n')
+            linesCount++;
+    }
+
+    fclose(fp_telephoneData);
+}
+
+/*
  * Main Function
  * Authors: 
  *          Mohammed Usman E Gani (2SD18CS059) 
@@ -585,6 +874,8 @@ int main()
 {
     FILE *fp_employeeData = fopen("employeeData.txt", "a");
     FILE *fp_departmentData = fopen("DepartmentData.txt", "a");
+    FILE *fp_telephoneData = fopen("telephoneData.txt", "a");
+    fclose(fp_telephoneData);
     userAuthentation(); //Authentation
     system("CLS");
     printf("\n Logged In\n\n");
