@@ -1,9 +1,9 @@
 /*
  * To implement Telophone Directory Maintenance System using Files (As Relational Database) in C.
  * Date: 08-09-2020
- * Authors: 
- *          Mohammed Usman E Gani (2SD18CS059) 
- *                  (AND) 
+ * Authors:
+ *          Mohammed Usman E Gani (2SD18CS059)
+ *                  (AND)
  *          S Varun (2SD18CS130)
 */
 
@@ -18,7 +18,7 @@
 void printLine();
 long int findSize(char file_name[]);
 char *tail(FILE *, int);
-void userAuthentation();
+int userAuthentation(char[], char[]);
 void mainMenu();
 void departmentMaintenanceMenu();
 void employeeMaintenanceMenu();
@@ -87,14 +87,12 @@ void printLine()
 char *tail(FILE *in, int n)
 {
     int count = 0; // To count '\n' characters
-
     // unsigned long long pos (stores upto 2^64 – 1
     // chars) assuming that long long int takes 8
     // bytes
     unsigned long long pos;
     char str[2 * 100];
     char temp[100];
-
     // Go to End of file
     if (fseek(in, 0, SEEK_END))
         perror("fseek() failed");
@@ -103,7 +101,6 @@ char *tail(FILE *in, int n)
         // pos will contain no. of chars in
         // input file.
         pos = ftell(in);
-
         // search for '\n' characters
         while (pos)
         {
@@ -111,7 +108,6 @@ char *tail(FILE *in, int n)
             if (!fseek(in, --pos, SEEK_SET))
             {
                 if (fgetc(in) == '\n')
-
                     // stop reading when n newlines
                     // is found
                     if (count++ == n)
@@ -120,7 +116,6 @@ char *tail(FILE *in, int n)
             else
                 perror("fseek() failed");
         }
-
         while (fgets(str, sizeof(str), in))
             return strcpy(temp, str);
     }
@@ -134,15 +129,11 @@ long int findSize(char file_name[])
 {
     // opening the file in read mode
     FILE *fp = fopen(file_name, "r");
-
     fseek(fp, 0L, SEEK_END);
-
     // calculating the size of the file
     long int res = ftell(fp);
-
     // closing the file
     fclose(fp);
-
     return res;
 }
 
@@ -150,47 +141,60 @@ long int findSize(char file_name[])
  * This function if For authentation, It allows maximum 3 trails
  * Author: mohammed Usman E Gani
 */
-void userAuthentation()
+int userAuthentation(char userName[], char password[])
 {
-    int i = 0, uid, maxLimit = 0;
-    char password[10], c;
-    system("CLS");
-    printLine();
-    printf(" Welcome - Telephone Directory Maintenance System \n");
-    printLine();
-    while (1)
+    char ch;
+    char currentUserName[20];
+    char currentPassword[20];
+    int i, attempts = 1, userNameCorrect = 1;
+    int maxTry = 3;
+    while (attempts <= maxTry)
     {
-        printf("\n User ID  : ");
-        scanf("%d", &uid);
-        printf("\n Password : ");
-        while ((c = getch()) != '\r')
-        {
-            password[i] = c;
-            printf("*");
-            i++;
-        }
-        char finalPass[50] = {password[0], password[1], password[2], '\0'};
-        if (strcmp(finalPass, "abc") != 0 || uid != 123)
-        {
-            printf("\n\n Authentation Failed !\n");
-            printf("\n Try Again\n");
-            maxLimit++;
-        }
-        else if (strcmp(finalPass, "abc") == 0 && uid == 123)
-        {
-            return;
-        }
-        if (maxLimit >= 3)
+        ch = '\0';
+        if (userNameCorrect)
         {
             system("CLS");
-            printf("\n\n Authentation Failed !\n");
-            printf("\n You Have Reached Maximum Trails Limit.\n");
-            printf("\n Hit Enter to Terminate ...");
+            printf("\n User Name : ");
+            gets(currentUserName);
+        }
+        if (strcmp(currentUserName, userName) == 0)
+        {
+            userNameCorrect = 0;
+            system("CLS");
+            printf("\n User Name : %s\n", currentUserName);
+            printf(" Password  : ");
+            i = 0;
+            while (ch != 13)
+            {
+                ch = getch();
+                if (ch != 13 && ch != 8)
+                {
+                    putch('*');
+                    currentPassword[i] = ch;
+                    i++;
+                }
+            }
+            currentPassword[i] = '\0';
+            if (strcmp(currentPassword, password) == 0)
+            {
+                // Authentication is successfull;
+                return 1;
+            }
+            else
+            {
+                printf("\n\n Password incorrect ! ");
+                getch();
+                attempts++;
+            }
+        }
+        else
+        {
+            attempts++;
+            printf("\n User Name incorrect ! ");
             getch();
-            system("CLS");
-            exit(0);
         }
     }
+    return 0;
 }
 
 /*
@@ -214,21 +218,17 @@ void mainMenu()
             system("CLS");
             departmentMaintenanceMenu();
             break;
-
         case 2:
             system("CLS");
             employeeMaintenanceMenu();
             break;
-
         case 3:
             system("CLS");
             telephoneMaintenanceMenu();
             break;
-
         case 4:
             printf("\n");
             exit(0);
-
         default:
             system("CLS");
             printf("\n Invalid Choice\n\n");
@@ -303,16 +303,13 @@ void printEmployeeDetails()
     printf(" ---------------------------------------------------------------------------------------------------------------");
     printf("\n Department \t\t Department Code \t Location \t\t Employee Name \t\t Employee ID\n");
     printf(" ---------------------------------------------------------------------------------------------------------------\n");
-
     while ((ch = fgetc(f)) != EOF)
     {
         if (ch == '\n')
             linesCount++;
     }
-
     fclose(f);
     f = fopen("employeeData.txt", "r");
-
     char token1[15], token2[25], token3[25], token4[15];
     while (!(feof(f)) && linesCount > 0)
     {
@@ -326,7 +323,6 @@ void printEmployeeDetails()
         printf("\n");
         linesCount--;
     }
-
     printf(" ---------------------------------------------------------------------------------------------------------------\n");
     fclose(f);
     printf("\n Press Enter To Continue... ");
@@ -356,17 +352,14 @@ void departmentMaintenanceMenu()
             system("CLS");
             addDepartment();
             break;
-
         case 2:
             system("CLS");
             printDepartmentDetails();
             break;
-
         case 3:
             system("CLS");
             mainMenu();
             break;
-
         default:
             system("CLS");
             printf("\n Invalid Choice\n\n");
@@ -396,17 +389,14 @@ void employeeMaintenanceMenu()
             system("CLS");
             addAnEmployee();
             break;
-
         case 2:
             system("CLS");
             printEmployeeDetails();
             break;
-
         case 3:
             system("CLS");
             mainMenu();
             break;
-
         default:
             system("CLS");
             printf("\n Invalid Choice\n\n");
@@ -436,17 +426,14 @@ void telephoneMaintenanceMenu()
             system("CLS");
             addTelephoneNumber();
             break;
-
         case 2:
             system("CLS");
             telephoneEnquiryMenu();
             break;
-
         case 3:
             system("CLS");
             mainMenu();
             break;
-
         default:
             system("CLS");
             printf("\n Invalid Choice\n\n");
@@ -477,7 +464,7 @@ void addAnEmployee()
     printLine();
     printf(" Add an Employee \n");
     printLine();
-    printf("\n Enter Employee Name: ");
+    printf("\n Enter Employee Name      : ");
     scanf("%s", emp.employeeName);
     res = findSize("employeeData.txt");
     if (res == 0)
@@ -493,7 +480,7 @@ void addAnEmployee()
         emp.employeeId = atoi(previousEmployeeId) + 1;
         fclose(fp_employeeData);
     }
-    printf("\n Employee ID: %d\n", emp.employeeId);
+    printf("\n Employee ID              : %d\n", emp.employeeId);
     char deptname[15], ch, deptcode[15], tempDeptCode[15], tempdeptname[15];
     int linesCount = 0, tempDeptCodeDigits;
     // Counting the number of lines in the file
@@ -519,7 +506,7 @@ void addAnEmployee()
     }
     printf(" -----------------------------------------------\n");
     fclose(fp_departmentData);
-    printf("\n Enter Department Code: ");
+    printf("\n Enter Department Code    : ");
     scanf("%d", &departmentCode);
     fp_departmentData = fopen("DepartmentData.txt", "r");
     while (!feof(fp_departmentData))
@@ -534,6 +521,7 @@ void addAnEmployee()
             emp.departmentCode = tempDeptCodeDigits;
             totrec++;
             strcpy(foundDepartment, dep.departmentName);
+            break;
         }
     }
     fclose(fp_departmentData);
@@ -543,7 +531,8 @@ void addAnEmployee()
         printf("\n Department with code %d Dose not Exists.\n\n", departmentCode);
         printDepartmentDetails();
     }
-    printf("\n Enter The Location: ");
+    printf("\n Department Name          : %s\n", strtok(strrev(foundDepartment), ","));
+    printf("\n Enter The Location       : ");
     scanf("%s", emp.employeeLocation);
     fp_employeeData = fopen("employeeData.txt", "a");
     fprintf(fp_employeeData, "%s,%d,%s,%s,%d\n", emp.departmentName, emp.departmentCode, emp.employeeLocation, emp.employeeName, emp.employeeId);
@@ -570,7 +559,7 @@ void addDepartment()
     printLine();
     printf(" Add Department \n");
     printLine();
-    printf("\n Enter Department Name: ");
+    printf("\n Enter Department Name  : ");
     scanf("%s", tempDepartmentName);
     for (i = 0; i <= strlen(tempDepartmentName); i++)
     {
@@ -583,7 +572,7 @@ void addDepartment()
         dep.departmentCode = 1000;
         fprintf(fp_departmentData, "%s,%d\n", tempDepartmentName, dep.departmentCode);
         fclose(fp_departmentData);
-        printf("\n Department Code: %d\n", dep.departmentCode);
+        printf("\n Department Code        : %d\n", dep.departmentCode);
         printf("\n Department Added Successfully. Press Enter To Continue... ");
         getch();
         system("CLS");
@@ -615,7 +604,7 @@ void addDepartment()
             char *departmentCode = strtok(trav, ",");
             strcpy(departmentCode, strrev(departmentCode));
             dep.departmentCode = atoi(departmentCode) + 1;
-            printf("\n Department Code: %d\n", dep.departmentCode);
+            printf("\n Department Code        : %d\n", dep.departmentCode);
             fp_departmentData = fopen("DepartmentData.txt", "a");
             fprintf(fp_departmentData, "%s,%d\n", tempDepartmentName, dep.departmentCode);
             fclose(fp_departmentData);
@@ -647,18 +636,14 @@ void addTelephoneNumber()
     printLine();
     printf(" Add a Telephone Number \n");
     printLine();
-
-    printf("\n Enter Employee ID: ");
+    printf("\n Enter Employee ID        : ");
     scanf("%d", &tempEmployeeId);
-
     while ((ch = fgetc(fp_employeeData)) != EOF)
     {
         if (ch == '\n')
             linesCount++;
     }
-
     fclose(fp_employeeData);
-
     fp_employeeData = fopen("employeeData.txt", "r");
     while (!(feof(fp_employeeData)) && linesCount > 0)
     {
@@ -675,18 +660,14 @@ void addTelephoneNumber()
         linesCount--;
     }
     fclose(fp_employeeData);
-
     if (found == 0)
     {
         system("CLS");
         printf("\n Employee with ID %d Dose not Exists.\n\n", tempEmployeeId);
         printEmployeeDetails();
     }
-
     finalDepCode = returnDepartmentCodeOnDepartmentName(depName);
-
     res = findSize("telephoneData.txt");
-
     if (res == 0)
     {
         tel.telephoneNumber = 1000;
@@ -699,7 +680,7 @@ void addTelephoneNumber()
         {
             system("CLS");
             printf("\n Telephone Number With Employee ID %d Already Exist.\n\n", tempEmployeeId);
-            addTelephoneNumber();
+            telephoneMaintenanceMenu();
         }
         char trav[100];
         FILE *fp_telephoneData = fopen("telephoneData.txt", "r");
@@ -708,10 +689,22 @@ void addTelephoneNumber()
         tel.telephoneNumber = atoi(trav) + 1;
         fclose(fp_telephoneData);
     }
-
     FILE *fp_telephoneData = fopen("telephoneData.txt", "a");
     fprintf(fp_telephoneData, "%s,%d-%d\n", empData, finalDepCode, tel.telephoneNumber);
     fclose(fp_telephoneData);
+    char *token = strtok(empData, ",");
+    int i = 0;
+    while (token != NULL)
+    {
+        i++;
+        if (i == 3)
+        {
+            printf("\n Location                 : %s\n", token);
+        }
+        token = strtok(NULL, ",");
+    }
+    printf("\n Department Code          : %d\n", finalDepCode);
+    printf("\n Telephone Number Alloted : %d%d\n", finalDepCode, tel.telephoneNumber);
     printf("\n Telephone Number Added Successfully. Press Enter To Continue... ");
     getch();
     system("CLS");
@@ -732,10 +725,8 @@ int returnDepartmentCodeOnDepartmentName(char depName[])
         if (ch == '\n')
             linesCount++;
     }
-
     fclose(fp_departmentData);
     fp_departmentData = fopen("DepartmentData.txt", "r");
-
     while (!(feof(fp_departmentData)) && linesCount > 0)
     {
         fscanf(fp_departmentData, "%s", tempDepData);
@@ -753,7 +744,7 @@ int returnDepartmentCodeOnDepartmentName(char depName[])
 }
 
 /*
- * This Function 
+ * This Function
 */
 int checkForExistenceOfEmpInTelePhoneData(int tempEmployeeId)
 {
@@ -787,7 +778,6 @@ int checkForExistenceOfEmpInTelePhoneData(int tempEmployeeId)
             exist = 1;
             break;
         }
-
         linesCount--;
     }
     fclose(fp_telephoneData);
@@ -818,17 +808,14 @@ void telephoneEnquiryMenu()
             // system("CLS");
             // enquiryonEmployeeName();
             break;
-
         case 2:
             system("CLS");
             enquironTelephoneNumber();
             break;
-
         case 3:
             system("CLS");
             mainMenu();
             break;
-
         default:
             system("CLS");
             printf("\n Invalid Choice\n\n");
@@ -844,30 +831,78 @@ void telephoneEnquiryMenu()
 void enquironTelephoneNumber()
 {
     FILE *fp_telephoneData = fopen("telephoneData.txt", "r");
-
-    long int tempTelephoneNumber;
-    int linesCount = 0;
-    char ch;
+    long int tempTelephoneNumber, finalTelephoneNumber;
+    int linesCount = 0, found = 0;
+    char ch, tempTelephoneData[125], tempTeleNumber[20], temp1[20], temp2[20], finalTeleNumber[20], telephoneData[125];
     printLine();
     printf(" Telephone Number Enquiry\n");
     printLine();
-    printf("\n Enter Telephone Number: ");
-    scanf("%d", tempTelephoneNumber);
+    printf("\n Enter Telephone Number   : ");
+    scanf("%d", &tempTelephoneNumber);
 
     while ((ch = fgetc(fp_telephoneData)) != EOF)
     {
         if (ch == '\n')
             linesCount++;
     }
-
     fclose(fp_telephoneData);
+    fp_telephoneData = fopen("telephoneData.txt", "r");
+    while (!(feof(fp_telephoneData)) && linesCount > 0)
+    {
+        fscanf(fp_telephoneData, "%s", tempTelephoneData);
+        strcpy(telephoneData, tempTelephoneData);
+        strcpy(tempTeleNumber, tempTelephoneData);
+        strrev(strtok(strrev(tempTeleNumber), ","));
+        strcpy(temp1, tempTeleNumber);
+        strcpy(temp2, tempTeleNumber);
+        strtok(temp1, "-");
+        strrev(strtok(strrev(temp2), "-"));
+        strcpy(finalTeleNumber, strcat(temp1, temp2));
+        finalTelephoneNumber = atoi(finalTeleNumber);
+        if (tempTelephoneNumber == finalTelephoneNumber)
+        {
+            char *token = strtok(telephoneData, ",");
+            int i = 0;
+            while (token != NULL)
+            {
+                i++;
+                if (i == 4)
+                {
+                    printf("\n Employee Name            : %s\n", token);
+                }
+                if (i == 3)
+                {
+                    printf("\n Location                 : %s\n", token);
+                }
+                if (i == 1)
+                {
+                    printf("\n Department Name          : %s\n", token);
+                }
+                token = strtok(NULL, ",");
+            }
+            found = 1;
+            printf("\n Press Enter To Continue... ");
+            getch();
+            system("CLS");
+            break;
+        }
+        linesCount--;
+    }
+    if (found == 0)
+    {
+        system("CLS");
+        printf("\n Employee With Telephone Number %d Dose Not Exist.\n\n", tempTelephoneNumber);
+        telephoneEnquiryMenu();
+    }
+    fclose(fp_telephoneData);
+    telephoneEnquiryMenu();
 }
 
 /*
  * Main Function
- * Authors: 
- *          Mohammed Usman E Gani (2SD18CS059) 
- *                  (AND) 
+ * Authors:
+ *          Mohammed Usman E Gani (2SD18CS059)
+ *                  (AND)
  *          S Varun (2SD18CS130)
 */
 int main()
@@ -876,8 +911,24 @@ int main()
     FILE *fp_departmentData = fopen("DepartmentData.txt", "a");
     FILE *fp_telephoneData = fopen("telephoneData.txt", "a");
     fclose(fp_telephoneData);
-    userAuthentation(); //Authentation
+    char password[20] = "123"; // set password
+    char userName[20] = "abc"; // set userName
     system("CLS");
-    printf("\n Logged In\n\n");
-    mainMenu();
+    printLine();
+    printf(" Welcome - Telephone Directory Maintenance System \n");
+    printLine();
+    printf("\n\n Press Enter to Login... ");
+    getch();
+    if (userAuthentation(userName, password))
+    {
+        system("CLS");
+        printf("\n Logged In\n\n");
+        mainMenu();
+    }
+    else
+    {
+        printf("\n\n You have reached Maximum Trails Limit !!! \n\n");
+        exit(0);
+    }
+    return 0;
 }
