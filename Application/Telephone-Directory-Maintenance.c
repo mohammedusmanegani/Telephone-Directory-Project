@@ -1058,5 +1058,7 @@ void developerInfo()
     printf(" 1\t\tS Varun\t\t\t\t2SD18CS130\t\t+91 94837 12819\t\tvarun3082000@gmail.com\n");
     printf(" 2\t\tMohammed Usman E Gani\t\t2SD18CS059\t\t+91 80886 11415\t\tka.usmanegani@gmail.com\n");
     printf("=======================================================================================================================\n\n");
+    printf(" Press Enter to Exit.");
+    getch();
     return;
 }
