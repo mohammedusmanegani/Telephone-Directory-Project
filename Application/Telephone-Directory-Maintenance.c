@@ -32,6 +32,9 @@ int returnDepartmentCodeOnDepartmentName(char[]);
 int checkForExistenceOfEmpInTelePhoneData(int);
 void telephoneEnquiryMenu();
 void enquironTelephoneNumber();
+void enquiryonEmployeeName();
+void printEnquiryonEmployeeName(char[]);
+void developerInfo();
 
 /*
  * Structure Name: Employee
@@ -228,6 +231,7 @@ void mainMenu()
             break;
         case 4:
             printf("\n");
+            developerInfo();
             exit(0);
         default:
             system("CLS");
@@ -793,6 +797,13 @@ int checkForExistenceOfEmpInTelePhoneData(int tempEmployeeId)
 */
 void telephoneEnquiryMenu()
 {
+    long int res = findSize("telephoneData.txt");
+    if (res == 0)
+    {
+        system("CLS");
+        printf("\n----------- Telephone Directory Is Empty ! -----------\n\n");
+        telephoneMaintenanceMenu();
+    }
     int choice, invalidStatus;
     do
     {
@@ -805,8 +816,8 @@ void telephoneEnquiryMenu()
         switch (choice)
         {
         case 1:
-            // system("CLS");
-            // enquiryonEmployeeName();
+            system("CLS");
+            enquiryonEmployeeName();
             break;
         case 2:
             system("CLS");
@@ -839,7 +850,6 @@ void enquironTelephoneNumber()
     printLine();
     printf("\n Enter Telephone Number   : ");
     scanf("%d", &tempTelephoneNumber);
-
     while ((ch = fgetc(fp_telephoneData)) != EOF)
     {
         if (ch == '\n')
@@ -899,6 +909,112 @@ void enquironTelephoneNumber()
 }
 
 /*
+ * Function for Telephone Enquiry on name
+ * Author: Mohammed Usman E Gani
+*/
+void enquiryonEmployeeName()
+{
+    FILE *fp_telephoneData = fopen("telephoneData.txt", "r");
+    char tempEmployeeName[25], ch, tempEmployeeTelephoneData[125], foundData[125];
+    int linesCount = 0, dataFound = 0, headers = 1;
+    printLine();
+    printf(" Telephone Number Enquiry By Name\n");
+    printLine();
+    printf("\n Enter Employee Name : ");
+    scanf("%s", tempEmployeeName);
+    while ((ch = fgetc(fp_telephoneData)) != EOF)
+    {
+        if (ch == '\n')
+            linesCount++;
+    }
+    fclose(fp_telephoneData);
+    fp_telephoneData = fopen("telephoneData.txt", "r");
+    while (!(feof(fp_telephoneData)) && linesCount > 0)
+    {
+        fscanf(fp_telephoneData, "%s", tempEmployeeTelephoneData);
+        strcpy(foundData, tempEmployeeTelephoneData);
+        char *token = strtok(tempEmployeeTelephoneData, ",");
+        int i = 0;
+        while (token != NULL)
+        {
+            i++;
+            if (i == 4)
+            {
+                for (i = 0; i <= strlen(tempEmployeeName); i++)
+                {
+                    if (tempEmployeeName[i] >= 97 && tempEmployeeName[i] <= 122)
+                        tempEmployeeName[i] = tempEmployeeName[i] - 32;
+                }
+                for (i = 0; i <= strlen(token); i++)
+                {
+                    if (token[i] >= 97 && token[i] <= 122)
+                        token[i] = token[i] - 32;
+                }
+                if (strcmp(token, tempEmployeeName) == 0)
+                {
+                    if (headers == 1)
+                    {
+                        printf("\n ---------------------------------------------------------------------------------------------------");
+                        printf("\n Name \t\t Location \t\t Department Name \t\t Telephone Number\n");
+                        printf(" ---------------------------------------------------------------------------------------------------\n");
+                        headers = 0;
+                    }
+                }
+                if (strcmp(token, tempEmployeeName) == 0)
+                {
+                    printEnquiryonEmployeeName(foundData);
+                    dataFound = 1;
+                }
+            }
+            token = strtok(NULL, ",");
+        }
+        linesCount--;
+    }
+    if (dataFound == 0)
+    {
+        system("CLS");
+        printf("\n Employee With Name %s Dose not Exist In Telephone Directory.\n\n", tempEmployeeName);
+        telephoneEnquiryMenu();
+    }
+    else
+    {
+        printf(" ---------------------------------------------------------------------------------------------------\n");
+        printf("\n Press Enter To Continue... ");
+        getch();
+        system("CLS");
+        telephoneEnquiryMenu();
+    }
+}
+
+void printEnquiryonEmployeeName(char dataToPrint[])
+{
+    char *token = strtok(dataToPrint, ","), name[25], location[25], dep[25], tele[25];
+    int i = 0;
+    while (token != NULL)
+    {
+        i++;
+        if (i == 4)
+        {
+            strcpy(name, token);
+        }
+        if (i == 3)
+        {
+            strcpy(location, token);
+        }
+        if (i == 1)
+        {
+            strcpy(dep, token);
+        }
+        if (i == 6)
+        {
+            strcpy(tele, token);
+        }
+        token = strtok(NULL, ",");
+    }
+    printf(" %s\t\t %s \t\t\t %s \t\t\t\t %s \n", name, location, dep, tele);
+}
+
+/*
  * Main Function
  * Authors:
  *          Mohammed Usman E Gani (2SD18CS059)
@@ -931,4 +1047,16 @@ int main()
         exit(0);
     }
     return 0;
+}
+
+void developerInfo()
+{
+    printf("\n\t\t\t\t\t\t   DEVELOPERS INFO \n");
+    printf("=======================================================================================================================\n");
+    printf(" SL.NO\t\tName\t\t\t\tUSN\t\t\tPhone Number\t\tE-Mail\n");
+    printf("=======================================================================================================================\n");
+    printf(" 1\t\tS Varun\t\t\t\t2SD18CS130\t\t+91 94837 12819\t\tvarun3082000@gmail.com\n");
+    printf(" 2\t\tMohammed Usman E Gani\t\t2SD18CS059\t\t+91 80886 11415\t\tka.usmanegani@gmail.com\n");
+    printf("=======================================================================================================================\n\n");
+    return;
 }
